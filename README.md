@@ -4,7 +4,7 @@
 ![css](https://img.shields.io/badge/TailwindCSS-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![javascript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![jquery](https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white)
-![Deezer API](https://img.shields.io/badge/Deezer-orange?style=for-the-badge&logo=api&logoColor=white)
+![Deezer](https://img.shields.io/badge/Deezer-orange?style=for-the-badge&logo=api&logoColor=white)
 
 Aplikasi web sederhana yang memungkinkan pengguna mencari dan memutar preview lagu (30 detik) dari Deezer. Dibangun menggunakan Tailwind CSS, jQuery 3.7, dan Deezer API (JSONP).
 
