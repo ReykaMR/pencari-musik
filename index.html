@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description"
+        content="Aplikasi pencarian musik sederhana menggunakan Deezer API (JSONP), HTML, Tailwind CSS, dan jQuery.">
+    <title>Pencari Musik</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        dark: '#0f172a',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Icon -->
+    <link rel="icon" href="img/ikon.png" type="image/x-icon">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="min-h-screen bg-dark text-slate-100 font-sans">
+    <!-- Header -->
+    <header
+        class="sticky top-0 z-30 backdrop-blur-md bg-gradient-to-r from-slate-900/95 to-slate-800/95 border-b border-slate-700 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center gap-3">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <div
+                        class="bg-primary w-10 h-10 flex items-center justify-center rounded-xl shadow-lg shadow-emerald-500/20">
+                        <i class="fas fa-music text-white"></i>
+                    </div>
+                    <h1
+                        class="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
+                        Pencari Musik
+                    </h1>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="ml-auto flex gap-2 text-sm font-medium">
+                    <button id="tabSearch"
+                        class="tab-btn px-3 sm:px-4 py-2 rounded-lg bg-primary text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/40 transition-all duration-300 flex items-center gap-2"
+                        aria-label="Tab Pencarian" aria-selected="true">
+                        <i class="fas fa-search"></i><span class="hidden sm:inline">Cari</span>
+                    </button>
+                    <button id="tabFav"
+                        class="tab-btn px-3 sm:px-4 py-2 rounded-lg bg-rose-500 text-white shadow-md shadow-rose-500/30 hover:shadow-lg hover:shadow-rose-500/40 transition-all duration-300 flex items-center gap-2"
+                        aria-label="Tab Favorit" aria-selected="false">
+                        <i class="fas fa-heart"></i><span class="hidden sm:inline">Favorit</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Search Bar -->
+            <div id="searchSection" class="mt-5">
+                <div class="relative group">
+                    <i
+                        class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition"></i>
+                    <input id="searchInput" type="text" placeholder="Cari lagu, artis, atau album…"
+                        class="w-full pl-10 pr-24 sm:pr-28 rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
+                        aria-label="Kotak pencarian musik">
+                    <button id="searchBtn"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 sm:px-5 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-emerald-400 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-emerald-500/40"
+                        aria-label="Tombol pencarian">
+                        <span class="hidden sm:inline">Cari</span>
+                        <i class="fas fa-search sm:hidden"></i>
+                    </button>
+                </div>
+
+                <!-- Riwayat Pencarian -->
+                <div id="historyContainer" class="mt-5">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2 text-slate-400">
+                            <i class="fas fa-history"></i>
+                            <span class="text-sm">Riwayat:</span>
+                        </div>
+                        <button id="clearHistoryBtn"
+                            class="text-xs text-red-400 hover:text-red-300 transition flex items-center gap-1"
+                            aria-label="Hapus semua riwayat">
+                            <i class="fas fa-trash"></i> <span class="hidden sm:inline">Hapus Semua</span>
+                        </button>
+                    </div>
+                    <div id="historyBox" class="mt-3 flex flex-nowrap overflow-x-auto gap-2 text-sm py-1"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Konten -->
+    <main class="max-w-6xl mx-auto px-4 py-6">
+        <!-- Info -->
+        <div class="text-slate-400 mb-5 text-sm flex items-center" id="resultInfo"></div>
+
+        <!-- Global full-screen loading overlay -->
+        <div id="globalLoader" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-primary mx-auto mb-4">
+                </div>
+                <p class="text-white">Sedang memproses permintaan...</p>
+            </div>
+        </div>
+
+        <!-- Top Chart banner -->
+        <div id="chartBanner" class="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary w-10 h-10 flex items-center justify-center rounded-lg">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium">Top Chart Deezer</h3>
+                    <p class="text-sm text-slate-400 mt-1">Mulai mengetik lalu tekan tombol Cari</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hasil pencarian -->
+        <div id="resultsContainer" class="relative">
+            <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"></div>
+            <div id="emptyState" class="hidden flex flex-col items-center justify-center text-center py-16">
+                <i class="fas fa-music text-4xl text-slate-500 mb-4"></i>
+                <h3 class="text-lg font-medium text-slate-300 mb-2">Tidak ada hasil</h3>
+                <p class="text-slate-500 max-w-md mx-auto">
+                    Coba kata kunci lain atau jelajahi top chart Deezer
+                </p>
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-8">
+            <button id="loadMoreBtn"
+                class="hidden px-5 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 transition font-medium"
+                aria-label="Muat lebih banyak hasil">
+                <i class="fas fa-plus-circle mr-2"></i>Muat Lebih Banyak
+            </button>
+        </div>
+
+        <!-- Favorit -->
+        <div id="favSection" class="hidden">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-rose-500 w-10 h-10 flex items-center justify-center rounded-lg">
+                    <i class="fas fa-heart text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold">Lagu Favorit</h2>
+            </div>
+            <div id="favGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"></div>
+            <div id="favEmpty" class="flex flex-col items-center justify-center py-16 text-center">
+                <i class="fas fa-heart text-4xl text-rose-500/30 mb-4"></i>
+                <h3 class="text-lg font-medium text-slate-300 mb-2">Belum ada lagu favorit</h3>
+                <p class="text-slate-500 max-w-md">Tambahkan lagu favorit dengan menekan tombol bintang pada lagu</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mini Player -->
+    <div id="miniPlayer" class="fixed inset-x-0 bottom-0 z-40 bg-dark/90 border-t border-slate-700 backdrop-blur">
+        <div class="max-w-6xl mx-auto px-4">
+            <div id="playerCard" class="py-3 hidden">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+                    <!-- Cover + Info -->
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <img id="playerCover" src="" class="w-12 h-12 sm:w-14 sm:h-14 rounded object-cover shadow-lg"
+                            alt="cover">
+                        <div class="min-w-0">
+                            <div id="playerTitle" class="font-medium truncate text-xs sm:text-sm">-</div>
+                            <div id="playerArtist" class="text-xs text-slate-400 truncate">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Kontrol utama -->
+                    <div class="flex items-center gap-1 order-3 sm:order-2">
+                        <button id="prevBtn"
+                            class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-800 transition"
+                            aria-label="Lagu sebelumnya">
+                            <i class="fas fa-step-backward text-slate-300 text-sm sm:text-base"></i>
+                        </button>
+                        <button id="playPauseBtn"
+                            class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white hover:bg-emerald-500 transition"
+                            aria-label="Putar/Jeda">
+                            <i class="fas fa-play text-sm sm:text-base"></i>
+                        </button>
+                        <button id="nextBtn"
+                            class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-800 transition"
+                            aria-label="Lagu berikutnya">
+                            <i class="fas fa-step-forward text-slate-300 text-sm sm:text-base"></i>
+                        </button>
+                    </div>
+
+                    <!-- Progress + waktu -->
+                    <div
+                        class="flex items-center gap-2 flex-1 sm:flex-none max-w-full sm:max-w-xs order-2 sm:order-3 w-full">
+                        <span id="currentTime" class="text-xs text-slate-500">0:00</span>
+                        <div id="progressContainer"
+                            class="flex-1 h-2 bg-slate-700 rounded-full mx-3 cursor-pointer sm:h-1"
+                            aria-label="Progress pemutaran">
+                            <div id="progressBar" class="h-full bg-primary rounded-full progress-bar" style="width:0%">
+                            </div>
+                        </div>
+                        <span id="totalTime" class="text-xs text-slate-500">0:30</span>
+                    </div>
+
+                    <!-- Tombol close -->
+                    <button id="closePlayer"
+                        class="p-2 rounded-full hover:bg-slate-800 transition absolute top-2 right-2 sm:static order-1 sm:order-4"
+                        aria-label="Tutup pemutar">
+                        <i class="fas fa-times text-slate-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed top-5 right-5 space-y-2 z-50 max-w-xs"></div>
+
+    <!-- Template Card -->
+    <template id="cardTemplate">
+        <div class="card-hover relative rounded-xl overflow-hidden bg-slate-800 border border-slate-700 fade-in">
+            <div class="relative">
+                <!-- Playing badge -->
+                <div
+                    class="playing-badge hidden absolute top-2 left-2 z-10 bg-primary text-white text-[0.65rem] font-medium px-2 py-1 rounded-md flex items-center gap-1 shadow">
+                    <i class="fas fa-volume-up text-[0.65rem]"></i>
+                    <span>Sedang Diputar</span>
+                </div>
+
+                <img class="w-full aspect-square object-cover" src="" alt="cover"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;charset=utf-8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23333%22/><text x=%2250%22 y=%2250%22 font-size=%2218%22 text-anchor=%22middle%22 alignment-baseline=%22middle%22 fill=%22%23999%22>No Cover</text></svg>';">
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3 opacity-0 hover:opacity-100 transition-opacity">
+                    <button
+                        class="play-btn w-full py-2 px-4 rounded-md bg-primary text-white text-sm font-medium hover:bg-emerald-400 transition flex items-center justify-center"
+                        aria-label="Putar lagu">
+                        <i class="fas fa-play mr-2"></i>Putar
+                    </button>
+                </div>
+                <button
+                    class="fav-btn absolute right-3 top-3 w-10 h-10 flex items-center justify-center bg-black/60 rounded-full hover:bg-yellow-500 transition"
+                    aria-label="Tambahkan ke favorit" title="Tambahkan ke favorit">
+                    <i class="fa-regular far fa-star text-white"></i>
+                </button>
+            </div>
+
+            <div class="p-4">
+                <div class="title font-medium truncate text-sm mb-1"></div>
+                <div class="artist text-xs text-slate-400 truncate"></div>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-xs text-slate-500">
+                        <i class="fas fa-clock mr-1"></i>30s
+                    </span>
+                    <button class="share-btn text-xs text-slate-400 hover:text-primary transition"
+                        aria-label="Bagikan lagu">
+                        <i class="fas fa-share-alt mr-1"></i>Bagikan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Skeleton Loading -->
+    <template id="skeletonTemplate">
+        <div class="rounded-xl overflow-hidden bg-slate-800 border border-slate-700">
+            <div class="relative aspect-square skeleton"></div>
+            <div class="p-4">
+                <div class="h-4 rounded bg-slate-700 skeleton mb-2 w-3/4"></div>
+                <div class="h-3 rounded bg-slate-700 skeleton mb-3 w-1/2"></div>
+                <div class="flex justify-between">
+                    <div class="h-3 rounded bg-slate-700 skeleton w-1/4"></div>
+                    <div class="h-3 rounded bg-slate-700 skeleton w-1/4"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Modal Konfirmasi Hapus Semua Riwayat -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 rounded-xl shadow-lg w-full max-w-md border border-slate-700">
+            <div class="p-5">
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 bg-red-500/20 p-2 rounded-full">
+                        <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-1">Konfirmasi Penghapusan</h3>
+                        <p class="text-slate-400">Apakah Anda yakin ingin menghapus semua riwayat pencarian?</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button id="cancelClear"
+                        class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition font-medium">Batal</button>
+                    <button id="confirmClear"
+                        class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-400 text-white font-medium transition">Ya,
+                        Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioEl" preload="none" crossorigin="anonymous"></audio>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-700 mt-10">
+        <div class="py-6 flex flex-col items-center space-y-4">
+            <!-- Social Media -->
+            <div class="flex gap-4">
+                <a href="https://www.instagram.com/reyka_mr" target="_blank"
+                    class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-primary hover:text-white transition"
+                    aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://www.facebook.com/reykamr" target="_blank"
+                    class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-primary hover:text-white transition"
+                    aria-label="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/reyka-mochammad-raihan" target="_blank"
+                    class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-primary hover:text-white transition"
+                    aria-label="LinkedIn">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+            </div>
+
+            <!-- Versi -->
+            <div class="text-xs text-slate-400">
+                Data musik oleh <a href="https://developers.deezer.com/login?redirect=/api" class="underline"
+                    target="_blank">Deezer</a>
+            </div>
+
+            <!-- Copyright -->
+            <div class="text-center text-xs text-slate-500">
+                &copy; <span>2025</span> Reyka Mochammad Raihan | Versi 1.0.0
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

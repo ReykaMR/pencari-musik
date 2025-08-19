@@ -1,0 +1,84 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+.card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+}
+
+.progress-bar {
+    transition: width 0.15s linear;
+}
+
+*:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+#globalLoader {
+    transition: opacity 0.2s ease;
+}
+
+@media (max-width: 640px) {
+    .card-hover .play-btn {
+        font-size: 0.9rem;
+    }
+}
+
+.playing-badge {
+    position: absolute;
+    left: 0.65rem;
+    top: 0.65rem;
+    z-index: 40;
+    background-color: rgba(16, 185, 129, 0.95);
+    color: white;
+    font-size: 0.68rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.12);
+}
+
+.playing-badge.hidden {
+    display: none;
+}
+
+.play-btn[disabled] {
+    opacity: 0.6;
+    pointer-events: none;
+}
